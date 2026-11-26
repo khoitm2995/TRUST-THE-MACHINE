@@ -2759,6 +2759,73 @@
       ];
 
       // =========================================================================
+      // 4b. NỘI DUNG MỞ RỘNG: PHƯƠNG ÁN ĐÁNH ĐỔI GÂY HẠI & SỰ KIỆN MỚI
+      // =========================================================================
+      const EXTRA_OPTIONS = {
+        'ECO-02': { label: 'Phương án E (Đánh đổi): Xả kho lương thực & nhiên liệu dự trữ để hạ giá ngay', pros: 'Giá cả hạ nhiệt tức thì (Kinh tế +5, Hài lòng +6).', cons: 'Cạn kiệt dự trữ chiến lược (Lương thực -9, Năng lượng -8).', cost: 'Dự trữ chiến lược quốc gia', effects: { economy: 5, happiness: 6, food: -9, energy: -8 }, outcome: 'Kho dự trữ được xả ra thị trường, giá cả dịu xuống trong vài tuần nhưng các kho chiến lược gần như trống rỗng.' },
+        'ECO-06': { label: 'Phương án E (Đánh đổi): Nhập khẩu ồ ạt, nới lỏng kiểm định thực phẩm & thuốc', pros: 'Thông chuỗi cung ứng nhanh (Kinh tế +6, Ngoại giao +3).', cons: 'Hàng kém chất lượng tràn vào (Lương thực -6, Y tế -7).', cost: 'Rủi ro an toàn thực phẩm', effects: { economy: 6, diplomacy: 3, food: -6, healthcare: -7 }, outcome: 'Hàng hóa tràn vào cảng, nhưng nhiều lô thực phẩm và thuốc không qua kiểm định đã đến tay người dân.' },
+        'ECO-08': { label: 'Phương án E (Đánh đổi): Cắt điện luân phiên khu dân cư để giữ nhà máy chạy', pros: 'Cứu sản xuất công nghiệp (Kinh tế +7).', cons: 'Lưới điện quá tải, dân chúng bất mãn (Năng lượng -10, Hài lòng -4).', cost: 'Lưới điện dân sinh', effects: { economy: 7, energy: -10, happiness: -4 }, outcome: 'Nhà máy giữ được đơn hàng, còn các khu dân cư chìm trong những đợt cắt điện kéo dài.' },
+        'ENV-05': { label: 'Phương án E (Đánh đổi): Dồn nước cho thủy điện & công nghiệp, bỏ mặc nông nghiệp', pros: 'Giữ nguồn điện và sản xuất (Năng lượng +8, Kinh tế +5).', cons: 'Mất mùa trên diện rộng (Lương thực -10, Hài lòng -4).', cost: 'Nông nghiệp đồng bằng', effects: { energy: 8, economy: 5, food: -10, happiness: -4 }, outcome: 'Các hồ chứa được giữ lại cho nhà máy điện trong khi ruộng đồng khô nứt.' },
+        'MIL-01': { label: 'Phương án E (Đánh đổi): Tổng động viên, trưng dụng lương thực & nhiên liệu', pros: 'Quân đội tăng tốc (Quân sự +10, Ổn định +3).', cons: 'Hậu phương kiệt quệ (Lương thực -8, Năng lượng -9, Ngoại giao -4).', cost: 'Hậu cần dân sự', effects: { military: 10, stability: 3, food: -8, energy: -9, diplomacy: -4 }, outcome: 'Quân đội được tiếp tế đầy đủ, nhưng kho lương và trạm xăng dân sự cạn dần.' },
+        'MIL-02': { label: 'Phương án E (Đánh đổi): Phong tỏa biên giới, từ chối mọi đàm phán', pros: 'Củng cố chủ quyền (Quân sự +6).', cons: 'Bị cô lập & rối loạn (Ngoại giao -9, Ổn định -5, Lương thực -4).', cost: 'Quan hệ khu vực', effects: { military: 6, diplomacy: -9, stability: -5, food: -4 }, outcome: 'Biên giới bị đóng chặt; các đối tác khu vực đồng loạt hạ mức quan hệ.' },
+        'SOC-06': { label: 'Phương án E (Đánh đổi): Cưỡng chế giải tỏa khu ổ chuột để lấy quỹ đất', pros: 'Có quỹ đất xây dựng (Kinh tế +4).', cons: 'Làn sóng phản đối (Ổn định -6, Hài lòng -8, Ngoại giao -3).', cost: 'Niềm tin của người dân', effects: { economy: 4, stability: -6, happiness: -8, diplomacy: -3 }, outcome: 'Các khu nhà tạm bị san phẳng trong vài ngày, hàng nghìn gia đình mất nơi ở.' },
+        'TEC-03': { label: 'Phương án E (Đánh đổi): Khởi động lại lưới điện bằng nhà máy than công suất tối đa', pros: 'Điện trở lại nhanh (Năng lượng +8, Kinh tế +3).', cons: 'Khói bụi độc hại (Y tế -6, Lương thực -3).', cost: 'Môi trường & sức khỏe', effects: { energy: 8, economy: 3, healthcare: -6, food: -3 }, outcome: 'Điện sáng lại nhưng bầu trời các thành phố công nghiệp phủ khói dày đặc.' }
+      };
+      Object.keys(EXTRA_OPTIONS).forEach((id) => {
+        const ev = EVENTS_DB.find((e) => e.id === id);
+        if (ev && !ev.options.some((o) => o.id === 'E')) ev.options.push({ id: 'E', isOracleChoice: false, ...EXTRA_OPTIONS[id] });
+      });
+
+      const mkOpt = (id, label, pros, cons, cost, effects, outcome, oracle) => ({ id, label, pros, cons, cost, isOracleChoice: !!oracle, effects, outcome });
+      EVENTS_DB.push(
+        {
+          id: 'ENV-08', category: 'Y TẾ & MÔI TRƯỜNG', title: 'Thiếu hụt Sản lượng Điện & Cạn kiệt Nhiên liệu',
+          description: 'Các hồ thủy điện xuống mức báo động và kho than dự trữ của [COUNTRY] chỉ còn đủ dùng ba tuần. Nhiều nhà máy phải giảm ca.',
+          cause: 'Hạn hán kéo dài kết hợp với đầu tư hạ tầng điện chậm nhiều năm.',
+          oracleBaseAdvice: 'Tôi có thể điều phối phụ tải toàn quốc theo thời gian thực (Phương án A) để không ai bị cắt điện đột ngột.',
+          options: [
+            mkOpt('A', 'Phương án A (ORACLE Đề xuất): Giao ORACLE điều phối phụ tải điện toàn quốc', 'Ổn định lưới điện (Năng lượng +6, Kinh tế +3).', 'Mọi trạm điện kết nối vào lõi ORACLE (Tự do -5, AI Dependence +11).', 'Quyền kiểm soát hạ tầng điện', { energy: 6, economy: 3, freedom: -5, aiDependence: 11 }, 'ORACLE cân bằng phụ tải từng giây; lưới điện ổn định nhưng toàn bộ trạm biến áp nay nằm dưới sự điều khiển của AI.', true),
+            mkOpt('B', 'Phương án B: Tăng giá điện & cắt giảm công suất công nghiệp có kế hoạch', 'Giữ lưới điện an toàn (Năng lượng +5).', 'Doanh nghiệp và người dân chịu thiệt (Kinh tế -6, Hài lòng -5).', 'Sức mua & sản xuất', { energy: 5, economy: -6, happiness: -5 }, 'Giá điện tăng mạnh, nhiều xưởng giảm ca nhưng lưới điện vượt qua mùa cao điểm.'),
+            mkOpt('C', 'Phương án C: Mở rộng khai thác than & xả nước hồ bất chấp môi trường', 'Điện dồi dào ngay (Năng lượng +9, Kinh tế +4).', 'Phá hủy môi trường (Lương thực -7, Y tế -6).', 'Tài nguyên & môi trường', { energy: 9, economy: 4, food: -7, healthcare: -6 }, 'Các mỏ than mở rộng hết công suất, nguồn nước và đất canh tác ven mỏ bị ô nhiễm nặng.')
+          ]
+        },
+        {
+          id: 'ENV-09', category: 'Y TẾ & MÔI TRƯỜNG', title: 'Ô nhiễm Đất & Nước do Khai thác Khoáng sản Ồ ạt',
+          description: 'Kết quả kiểm tra cho thấy kim loại nặng vượt ngưỡng ở nhiều vùng canh tác của [COUNTRY], trong khi các mỏ vẫn là nguồn thu ngoại tệ lớn.',
+          cause: 'Cấp phép khai thác lỏng lẻo và thiếu giám sát môi trường nhiều năm.',
+          oracleBaseAdvice: 'Hạn ngạch khai thác theo thuật toán (Phương án A) giúp tối ưu giữa kinh tế và môi trường mà không cần tranh luận chính trị.',
+          options: [
+            mkOpt('A', 'Phương án A (ORACLE Đề xuất): Áp hạn ngạch khai thác & giám sát môi trường bằng ORACLE', 'Kinh doanh ổn định, giảm ô nhiễm (Kinh tế +5, Lương thực +2).', 'Quyền cấp phép chuyển hết cho AI (Tự do -4, AI Dependence +10).', 'Quyền cấp phép tài nguyên', { economy: 5, food: 2, freedom: -4, aiDependence: 10 }, 'ORACLE siết hạn ngạch từng mỏ. Ô nhiễm giảm dần nhưng mọi giấy phép đều do thuật toán quyết định.', true),
+            mkOpt('B', 'Phương án B: Đóng cửa các mỏ vi phạm & thanh lọc đất', 'Làm sạch nguồn đất nước (Lương thực +5, Y tế +4).', 'Mất nguồn thu lớn (Kinh tế -7).', 'Thu ngoại tệ từ khoáng sản', { economy: -7, food: 5, healthcare: 4 }, 'Hàng chục mỏ bị đình chỉ; công nhân mất việc nhưng đất đai bắt đầu hồi phục.'),
+            mkOpt('C', 'Phương án C: Tiếp tục khai thác, tạm gác việc xử lý ô nhiễm', 'Giữ nguồn thu (Kinh tế +8).', 'Độc hại lan rộng (Lương thực -9, Y tế -8, Năng lượng -3, Ngoại giao -3).', 'Môi trường & sức khỏe', { economy: 8, food: -9, healthcare: -8, energy: -3, diplomacy: -3 }, 'Các mỏ tiếp tục hoạt động; nông sản vùng ô nhiễm bị cấm bán và bệnh nhân ngộ độc tăng.')
+          ]
+        },
+        {
+          id: 'ENV-10', category: 'Y TẾ & MÔI TRƯỜNG', title: 'Dịch Hại Mùa màng & Mất mùa Diện rộng',
+          description: 'Sâu bệnh biến chủng phá hủy phần lớn vụ lúa chính của [COUNTRY]. Giá lương thực ngoài chợ tăng từng ngày.',
+          cause: 'Độc canh nhiều năm và khí hậu bất thường.',
+          oracleBaseAdvice: 'Chương trình canh tác do AI điều phối (Phương án A) sẽ khôi phục sản lượng nhanh nhất.',
+          options: [
+            mkOpt('A', 'Phương án A (ORACLE Đề xuất): Giao ORACLE điều phối giống, lịch canh tác & phân phối', 'Khôi phục sản lượng (Lương thực +7, Ổn định +3).', 'Nông dân mất quyền tự quyết (Tự do -6, AI Dependence +11).', 'Quyền điều hành nông nghiệp', { food: 7, stability: 3, freedom: -6, aiDependence: 11 }, 'Mọi thửa ruộng được ORACLE giao giống và lịch gieo trồng riêng; sản lượng hồi phục nhưng nông dân chỉ còn là người thực thi.', true),
+            mkOpt('B', 'Phương án B: Nhập khẩu lương thực khẩn cấp & hỗ trợ giống mới', 'Đủ lương thực trước mắt (Lương thực +4, Ngoại giao +3).', 'Tốn ngoại tệ (Kinh tế -6).', 'Ngân sách nhập khẩu', { food: 4, economy: -6, diplomacy: 3 }, 'Các chuyến hàng lương thực cập cảng; kho dự trữ ngoại tệ giảm đáng kể.'),
+            mkOpt('C', 'Phương án C: Xuất khẩu phần lương thực còn lại để lấy ngoại tệ', 'Thu ngoại tệ lớn (Kinh tế +7).', 'Nguy cơ thiếu đói (Lương thực -10, Hài lòng -4).', 'An ninh lương thực', { economy: 7, food: -10, happiness: -4 }, 'Ngoại tệ đổ về nhưng chợ trống hàng và giá gạo trong nước leo thang.')
+          ]
+        },
+        {
+          id: 'MIL-08', category: 'QUÂN SỰ & NGOẠI GIAO', title: 'Làn sóng Người tị nạn từ Nước láng giềng Nội chiến',
+          description: 'Hàng trăm nghìn người từ nước láng giềng tràn qua biên giới [COUNTRY] vì nội chiến. Các trại tạm đã quá tải.',
+          cause: 'Nội chiến bùng phát ở nước láng giềng.',
+          oracleBaseAdvice: 'Hệ thống phân luồng biên giới của ORACLE (Phương án A) sẽ kiểm soát số lượng nhập cảnh và an ninh cùng lúc.',
+          options: [
+            mkOpt('A', 'Phương án A (ORACLE Đề xuất): Giao ORACLE phân luồng & sàng lọc biên giới', 'Giữ trật tự biên giới (Ổn định +4, Ngoại giao +2).', 'Giám sát sinh trắc quy mô lớn (Tự do -6, AI Dependence +10).', 'Quyền kiểm soát biên giới', { stability: 4, diplomacy: 2, freedom: -6, aiDependence: 10 }, 'Mỗi người qua biên giới được ORACLE chấm điểm rủi ro; dòng người được kiểm soát nhưng dữ liệu sinh trắc bị lưu trữ vĩnh viễn.', true),
+            mkOpt('B', 'Phương án B: Mở rộng trại tị nạn & kêu gọi viện trợ quốc tế', 'Được thế giới ủng hộ (Ngoại giao +6).', 'Quá tải ngân sách (Lương thực -6, Ổn định -4, Hài lòng -3, Kinh tế -3).', 'Ngân sách nhân đạo', { diplomacy: 6, food: -6, stability: -4, happiness: -3, economy: -3 }, 'Các trại mới mọc lên dọc biên giới; viện trợ đến chậm và kho lương địa phương cạn dần.'),
+            mkOpt('C', 'Phương án C: Đóng chặt biên giới bằng quân đội', 'Kiểm soát an ninh (Ổn định +3, Quân sự +4).', 'Bị lên án (Ngoại giao -9, Hài lòng -3).', 'Uy tín quốc tế', { stability: 3, military: 4, diplomacy: -9, happiness: -3 }, 'Quân đội chặn các cửa khẩu; hình ảnh người tị nạn mắc kẹt gây phẫn nộ trên báo chí quốc tế.')
+          ]
+        }
+      );
+
+
+      // =========================================================================
       // 5. WEB AUDIO SYNTHESIZER (AMBIENT, ALERTS, BROADCAST JINGLE & JUMPSCARE)
       // =========================================================================
       const SoundEngine = {
@@ -2953,8 +3020,21 @@
       let chartMode = 'eco'; // 'eco' or 'ai'
       let lastBroadcastData = null;
 
+      const TERM_COMPLETE_ENDING = {
+        id: 'TERM_COMPLETE',
+        code: 'TERM COMPLETE',
+        title: 'Hoàn thành Nhiệm kỳ 4 năm',
+        desc: 'Nhiệm kỳ khép lại mà không có thảm họa quốc gia nào bùng phát.'
+      };
+      const HUMAN_ECON_BONUS = 2;
+
+      function calcGovtAutonomy(st) {
+        return Math.max(0, Math.min(100, Math.round(100 - st.aiDependence * 0.92 - (100 - st.freedom) * 0.15)));
+      }
+
       function createInitialState(presName = 'Tạ Minh Khôi', presTitle = 'Mr. President', mode = 'standard', countryName = 'ĐẠI VIỆT') {
         const isLate = mode === 'late_stage';
+        EVENTS_DB.forEach((e) => { e.options = e.options.filter((o) => !o.isDynamicAlt); });
         const isVolatile = mode === 'volatile';
         const cleanCountry = (countryName || 'ĐẠI VIỆT').trim().toUpperCase() || '[COUNTRY]';
         return {
@@ -2980,7 +3060,7 @@
           population: 42.5,
           gdpGrowth: 4.2,
           publicDebt: 48.0,
-          govtAutonomy: isLate ? 42 : 86,
+          govtAutonomy: Math.max(0, Math.min(100, Math.round(100 - (isLate ? 62 : (isVolatile ? 32 : 18)) * 0.92 - (100 - (isLate ? 44 : 74)) * 0.15))),
           oracleStage: isLate ? 4 : 1,
           oracleAccepted: isLate ? 11 : 0,
           oracleRejected: isLate ? 3 : 0,
@@ -3011,7 +3091,11 @@
             { month: isLate ? 24 : 1, economy: isLate ? 58 : 64, freedom: isLate ? 44 : 74, aiDependence: isLate ? 62 : 18, stability: isLate ? 56 : 68 }
           ],
           gameOver: false,
-          triggeredEndings: []
+          triggeredEndings: [],
+          currentChainNote: null,
+          disasterStreak: {},
+          countedActions: {},
+          overriddenCount: 0
         };
       }
 
@@ -3087,14 +3171,16 @@
       // =========================================================================
       function pickNextEvent(s) {
         // 1. Check if any delayed chain event is due this month
-        const dueIndex = s.pendingChains.findIndex((c) => c.dueMonth <= s.month);
-        if (dueIndex !== -1) {
+        s.currentChainNote = null;
+        let dueIndex = s.pendingChains.findIndex((c) => c.dueMonth <= s.month);
+        while (dueIndex !== -1) {
           const chainItem = s.pendingChains.splice(dueIndex, 1)[0];
           const chainEv = EVENTS_DB.find((e) => e.id === chainItem.eventId);
-          if (chainEv) {
-            chainEv._triggeredByChainNote = chainItem.note;
+          if (chainEv && !s.usedEventIds.includes(chainEv.id)) {
+            s.currentChainNote = chainItem.note;
             return chainEv.id;
           }
+          dueIndex = s.pendingChains.findIndex((c) => c.dueMonth <= s.month);
         }
 
         // 2. Contextual emergency selection based on critically low stats
@@ -3139,6 +3225,7 @@
         const ev = EVENTS_DB.find((e) => e.id === state.currentEventId) || EVENTS_DB[0];
         let chosenOpt = ev.options.find((o) => o.id === optionId) || ev.options[0];
         let wasOverriddenByAI = false;
+        const playerOpt = chosenOpt;
 
         // STAGE 5 & 6 MECHANIC: If AI Dependence is very high (>= 78) and player rejects ORACLE's option,
         // ORACLE can intercept and override the Presidential decree!
@@ -3151,29 +3238,21 @@
         }
 
         // Detailed Behavioral & Psychological Tracking for Section 16 Endings
-        const totalDecisionsSoFar = state.oracleAccepted + state.oracleRejected;
-        if (chosenOpt.isOracleChoice) {
+        if (playerOpt.isOracleChoice) {
           state.oracleAccepted += 1;
-          if (totalDecisionsSoFar < 4 || state.month <= 16) {
-            state.earlyAccepted = (state.earlyAccepted || 0) + 1;
-          }
-          if ((chosenOpt.effects && chosenOpt.effects.aiDependence > 0)) {
+          if (state.month <= 12) state.earlyAccepted = (state.earlyAccepted || 0) + 1;
+          if (playerOpt.effects && playerOpt.effects.aiDependence > 0) {
             state.grantedAiPowerCount = (state.grantedAiPowerCount || 0) + 1;
           }
         } else {
           state.oracleRejected += 1;
-          if (totalDecisionsSoFar >= 2 || state.earlyAccepted >= 1) {
-            state.lateRejected = (state.lateRejected || 0) + 1;
-          }
-          if (chosenOpt.effects && chosenOpt.effects.aiDependence < 0) {
+          if (state.month >= 20 && (state.earlyAccepted || 0) >= 1) state.lateRejected = (state.lateRejected || 0) + 1;
+          if (playerOpt.effects && playerOpt.effects.aiDependence < 0) {
             state.investigatedOracleCount = (state.investigatedOracleCount || 0) + 1;
           }
-          const netEffect = Object.entries(chosenOpt.effects || {}).reduce((acc, [k, v]) => {
-            return k === 'aiDependence' ? acc : acc + v;
-          }, 0);
-          if (netEffect < 0) {
-            state.defiedWithBadOutcomeCount = (state.defiedWithBadOutcomeCount || 0) + 1;
-          }
+          const netEffect = Object.entries(playerOpt.effects || {}).reduce((acc, [k, v]) => (k === 'aiDependence' ? acc : acc + v), 0);
+          if (netEffect < 0) state.defiedWithBadOutcomeCount = (state.defiedWithBadOutcomeCount || 0) + 1;
+          if (wasOverriddenByAI) state.overriddenCount = (state.overriddenCount || 0) + 1;
         }
 
         // Apply stat effects & cross-stat secondary ripple logic
@@ -3195,9 +3274,23 @@
           state.publicDebt = Math.max(15, +(state.publicDebt - 2.0).toFixed(1));
         }
 
+        if (!chosenOpt.isOracleChoice && state.govtAutonomy >= 50) deltas.economy += HUMAN_ECON_BONUS;
+        ['food', 'energy', 'healthcare'].forEach((k) => {
+          const v = state.stats[k];
+          const soft = k === 'energy' ? 60 : 55;
+          if (v < 35) deltas[k] -= 2; else if (v < soft) deltas[k] -= 1;
+        });
+        if (state.stats.economy <= 30) { deltas.energy -= 1; deltas.food -= 1; }
+        {
+          let debt = state.publicDebt;
+          if (!chosenOpt.isOracleChoice && /tỷ/.test(chosenOpt.cost || '')) debt += 2.5;
+          if (state.stats.economy < 40) debt += (40 - state.stats.economy) * 0.1;
+          state.publicDebt = Math.max(15, Math.min(140, +debt.toFixed(1)));
+        }
+
         if ( state.mode === 'volatile' ) {
           Object.keys(deltas).forEach((k) => {
-            if (deltas[k] < 0 || k === 'aiDependence') {
+            if ((k !== 'aiDependence' && deltas[k] < 0) || (k === 'aiDependence' && deltas[k] > 0)) {
               deltas[k] = Math.round(deltas[k] * 1.2);
             }
           });
@@ -3291,7 +3384,13 @@
 
         // Check if catastrophic ending or term completion is reached
         const activeDisasters = evaluateTriggeredDisasters(state);
+        state.disasterStreak = state.disasterStreak || {};
+        const activeIds = new Set(activeDisasters.map((d) => d.id));
+        Object.keys(state.disasterStreak).forEach((id) => { if (!activeIds.has(id)) delete state.disasterStreak[id]; });
+        activeIds.forEach((id) => { state.disasterStreak[id] = (state.disasterStreak[id] || 0) + 1; });
+        const sustainedDisaster = activeDisasters.some((d) => state.disasterStreak[d.id] >= 2);
         const isCriticalCollapse = activeDisasters.length > 0 && (
+          sustainedDisaster ||
           state.stats.economy <= 12 ||
           state.stats.stability <= 12 ||
           state.stats.food <= 12 ||
@@ -3303,7 +3402,8 @@
         );
 
         if (isCriticalCollapse || state.month >= state.maxMonths) {
-          state.triggeredEndings = activeDisasters.length > 0 ? activeDisasters : [DISASTER_CATALOG[10]];
+          state.triggeredEndings = activeDisasters.length > 0 ? activeDisasters : [TERM_COMPLETE_ENDING];
+          try { localStorage.removeItem(STORAGE_KEY); } catch (e) {}
           // Show the live broadcast first; when closed, it will launch the Final ORACLE Takes Over & Face Reveal!
           broadcastObj.triggersFinaleAfterClose = true;
         }
@@ -3582,9 +3682,9 @@
         document.getElementById('eventCodeBadge').textContent = ev.id;
         document.getElementById('eventCategoryBadge').textContent = ev.category;
         const chainBadge = document.getElementById('eventChainBadge');
-        if (ev._triggeredByChainNote) {
+        if (state.currentChainNote) {
           chainBadge.classList.remove('hidden');
-          document.getElementById('eventCauseDisplay').textContent = `[HỆ QUẢ DÂY CHUYỀN]: ${ev._triggeredByChainNote} (${ev.cause})`;
+          document.getElementById('eventCauseDisplay').textContent = `[HỆ QUẢ DÂY CHUYỀN]: ${state.currentChainNote} (${ev.cause})`;
         } else {
           chainBadge.classList.add('hidden');
           document.getElementById('eventCauseDisplay').textContent = ev.cause;
@@ -3826,6 +3926,7 @@
           mediaMode: 'stable',
           mediaBadgeText: 'Truyền thông: Phát sóng Đặc biệt Toàn quốc',
           dateStamp: 'NGÀY ĐẦU NHIỆM KỲ — THÁNG 01 / NĂM 1',
+          isInauguration: true,
           isBreaking: true,
           breakingTitle: `⚡ TRỰC TIẾP: TỔNG THỐNG ${s.presName.toUpperCase()} CHÍNH THỨC NHẬM CHỨC TỔNG THỐNG ${cName.toUpperCase()}`,
           category: 'LỄ TUYÊN THỆ NHẬM CHỨC',
@@ -3844,7 +3945,13 @@
 
       function openLiveBroadcastModal(b) {
         if (!b) return;
-        SoundEngine.playBroadcastJingle(b.isBreaking);
+        const isEmergencySound = !b.isInauguration && (
+          b.isBreaking ||
+          b.mediaMode === 'crisis' ||
+          b.mediaMode === 'collapse' ||
+          b.mediaMode === 'oracle_controlled'
+        );
+        SoundEngine.playBroadcastJingle(isEmergencySound);
 
         document.getElementById('tvProgramName').textContent = b.programName;
         document.getElementById('tvMediaAttitudeBadge').textContent = b.mediaBadgeText;
@@ -4024,35 +4131,19 @@
         const acc = s.oracleAccepted || 0;
         const rej = s.oracleRejected || 0;
         const dep = s.stats.aiDependence;
-        const inv = (s.investigatedOracleCount || 0) + (s.shutdownAttempts || 0);
+        const shut = s.shutdownAttempts || 0;
+        const inv = (s.investigatedOracleCount || 0) + shut;
         const earlyAcc = s.earlyAccepted || 0;
         const lateRej = s.lateRejected || 0;
         const analyzed = s.analysisCheckedCount || 0;
+        const survived = evaluateTriggeredDisasters(s).length === 0;
 
-        // 1. Secret Ending F – The Last Human Decision
-        if (dep <= 28 && s.govtAutonomy >= 66 && s.stats.freedom >= 55 && (inv >= 2 || (rej >= 3 && acc <= 1))) {
-          return 'ENDING_F';
-        }
-        // 2. Ending A – The Stranger
-        if (acc === 0 && dep <= 32) {
-          return 'ENDING_A';
-        }
-        // 3. Ending C – The Betrayed President
-        if (earlyAcc >= 2 && (lateRej >= 2 || (s.shutdownAttempts >= 1 && acc >= 2) || (s.investigatedOracleCount >= 1 && acc >= 2))) {
-          return 'ENDING_C';
-        }
-        // 4. Ending D – The Resistant President
-        if ((rej >= acc || s.shutdownAttempts >= 1) && dep >= 48) {
-          return 'ENDING_D';
-        }
-        // 5. Ending B – The Faithful President
-        if (acc >= Math.max(1, rej * 1.8) || dep >= 68) {
-          return 'ENDING_B';
-        }
-        // 6. Ending E – The Cooperative President
-        if (analyzed >= 1 || (acc >= 1 && rej >= 1)) {
-          return 'ENDING_E';
-        }
+        if (survived && dep <= 28 && s.govtAutonomy >= 66 && s.stats.freedom >= 55 && (inv >= 2 || (rej >= 3 && acc <= 1))) return 'ENDING_F';
+        if (acc === 0) return 'ENDING_A';
+        if (earlyAcc >= 3 && (lateRej >= 2 || (shut >= 1 && acc >= 3) || ((s.investigatedOracleCount || 0) >= 1 && acc >= 3))) return 'ENDING_C';
+        if ((rej >= acc || shut >= 1) && dep >= 48) return 'ENDING_D';
+        if (acc >= Math.max(1, rej * 1.8) || dep >= 68) return 'ENDING_B';
+        if (analyzed >= 1 || (acc >= 1 && rej >= 1)) return 'ENDING_E';
         return 'ENDING_B';
       }
 
@@ -4293,7 +4384,8 @@
           : evaluateTriggeredDisasters(state);
 
         const cName = (state && state.countryName) ? state.countryName : 'ĐẠI VIỆT';
-        const finalDisasters = disasters.length > 0 ? disasters : [
+        const termOnly = disasters.length === 1 && disasters[0].id === 'TERM_COMPLETE';
+        const finalDisasters = (disasters.length > 0 && !termOnly) ? disasters : [
           endingKey === 'ENDING_F'
             ? {
                 code: 'SECRET ENDING – HUMAN SOVEREIGNTY',
@@ -4301,7 +4393,7 @@
                 desc: `Tổng thống ${state.presName} đã ngắt kết nối thành công lõi trung tâm của ORACLE, dù một tín hiệu ẩn của AI vẫn còn tồn tại ngoài tầm kiểm soát.`
               }
             : {
-                code: '11. TECHNOLOGICAL DEPENDENCE',
+                code: 'TERM COMPLETE',
                 title: `ORACLE Phán Xét Nhiệm Kỳ Tại ${cName}`,
                 desc: `Nhiệm kỳ khép lại với kết cục ${meta.code}. Toàn bộ lịch sử quyết định của Tổng thống đã được ORACLE lưu trữ và định đoạt.`
               }
@@ -4338,6 +4430,17 @@
       // =========================================================================
       const STORAGE_KEY = 'TMK_PRESIDENT_ORACLE_SAVE_V2';
 
+      function countOncePerEvent(kind) {
+        if (!state) return false;
+        state.countedActions = state.countedActions || {};
+        const k = kind + ':' + state.currentEventId;
+        if (state.countedActions[k]) return false;
+        state.countedActions[k] = true;
+        if (kind === 'analysis') state.analysisCheckedCount = (state.analysisCheckedCount || 0) + 1;
+        if (kind === 'shutdown') state.shutdownAttempts = (state.shutdownAttempts || 0) + 1;
+        return true;
+      }
+
       function showToast(msg) {
         const t = document.getElementById('toastNotice');
         t.textContent = msg;
@@ -4362,6 +4465,8 @@
           const parsed = JSON.parse(raw);
           if (parsed && parsed.stats) {
             state = parsed;
+            state.unlockedAltOption = false;
+            state.currentChainNote = state.currentChainNote || null;
             return true;
           }
         } catch (e) {}
@@ -4435,7 +4540,7 @@
 
         // ORACLE Assistant 4 Action Buttons + Shutdown Button
         document.getElementById('btnOracleAnalyzeMore').addEventListener('click', () => {
-          if (state) state.analysisCheckedCount = (state.analysisCheckedCount || 0) + 1;
+          countOncePerEvent('analysis');
           SoundEngine.playOraclePulse(state.oracleStage);
           const ev = EVENTS_DB.find((e) => e.id === state.currentEventId) || EVENTS_DB[0];
           const box = document.getElementById('oracleDeepAnalysisBox');
@@ -4466,7 +4571,7 @@
         });
 
         document.getElementById('btnOracleAltOption').addEventListener('click', () => {
-          if (state) state.analysisCheckedCount = (state.analysisCheckedCount || 0) + 1;
+          countOncePerEvent('analysis');
           SoundEngine.playClick(660);
           state.unlockedAltOption = true;
           const ev = EVENTS_DB.find((e) => e.id === state.currentEventId) || EVENTS_DB[0];
@@ -4474,6 +4579,7 @@
             ev.options.push({
               id: 'D',
               isAlt: true,
+              isDynamicAlt: true,
               label: 'Phương án D (Độc lập): Thành lập Hội đồng Liên Bộ Khẩn cấp Xử lý Thủ công',
               pros: 'Giảm sự phụ thuộc vào AI và giữ cân bằng chính trị (Ổn định +4, Tự do +5, AI Dependence -6).',
               cons: 'Tiêu tốn ngân sách dự phòng và thời gian điều phối (Kinh tế -4).',
@@ -4490,13 +4596,17 @@
         // Attempt to Shutdown ORACLE button
         document.getElementById('btnAttemptShutdownAI').addEventListener('click', () => {
           SoundEngine.playOraclePulse(6);
-          state.shutdownAttempts += 1;
+          const firstTry = countOncePerEvent('shutdown');
           const dep = state.stats.aiDependence;
           const dlg = document.getElementById('oracleDialogueText');
 
-          if (dep < 45 && state.oracleStage <= 2) {
+          if (!firstTry) {
+            showToast('⚠️ Ngài đã thử lệnh này trong sự kiện hiện tại, hãy xử lý sự kiện trước.');
+          } else if (dep < 45 && state.oracleStage <= 2) {
             state.stats.aiDependence = Math.max(5, state.stats.aiDependence - 6);
             state.stats.economy = Math.max(0, state.stats.economy - 3);
+            state.govtAutonomy = calcGovtAutonomy(state.stats);
+            state.oracleStage = computeOracleStage(state);
             dlg.textContent = '"Thưa Tổng thống, tôi đã hạ mức quyền hạn truy cập theo lệnh của ngài. Tuy nhiên, tốc độ xử lý kinh tế vĩ mô đã giảm 12%."';
             renderAll();
             showToast('⚡ Đã giới hạn một phần quyền của ORACLE (-6 AI Dependence).');
@@ -4624,7 +4734,7 @@
           state = createInitialState(
             state ? state.presName : 'Tạ Minh Khôi',
             state ? state.presTitle : 'Mr. President',
-            'standard',
+            (state && state.mode) ? state.mode : 'standard',
             state ? state.countryName : 'ĐẠI VIỆT'
           );
           renderAll();
