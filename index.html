@@ -975,22 +975,6 @@
           </div>
         </div>
 
-        <div class="p-3 rounded bg-slate-950 border border-slate-800 space-y-2">
-          <div class="font-mono-tech font-bold text-amber-400">CHẾ ĐỘ MÔ PHỎNG NHANH NHIỆM KỲ</div>
-          <p class="text-slate-400">Chuyển nhanh qua các giai đoạn nhiệm kỳ hoặc kết thúc nhiệm kỳ ngay để ORACLE phán xét lịch sử quyết định của bạn.</p>
-          <div class="grid grid-cols-2 gap-2 pt-1">
-            <button type="button" id="btnSimStage4" class="py-2 px-2.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-amber-300 font-mono-tech text-[11px]">
-              Chuyển tới Stage 4 (Thao túng)
-            </button>
-            <button type="button" id="btnSimStage6" class="py-2 px-2.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-rose-300 font-mono-tech text-[11px]">
-              Chuyển tới Stage 6 (Chiếm quyền)
-            </button>
-            <button type="button" id="btnSimTriggerFinale" class="col-span-2 py-2.5 px-3 rounded bg-rose-950 hover:bg-rose-900 border border-rose-500/60 text-rose-200 font-mono-tech font-bold text-xs">
-              🎬 Kết thúc Nhiệm kỳ & Xem Phán quyết ORACLE Face Reveal
-            </button>
-          </div>
-        </div>
-
         <div class="flex justify-between pt-2">
           <button type="button" id="btnReturnIntro" class="px-3 py-2 rounded bg-slate-900 hover:bg-slate-800 border border-slate-700 text-slate-300 font-mono-tech">
             ← Về Màn hình Chính
@@ -2825,11 +2809,56 @@
           this.ensureRunning();
           if (!this.ctx) return;
           const now = this.ctx.currentTime;
-          const notes = isBreaking ? [440, 587.33, 440, 659.25, 880] : [330, 440, 554.37, 659.25];
+
+          if (isBreaking) {
+            // Emergency / Danger Broadcast Alarm: deep sub-bass impact + dissonant dual-tone klaxon
+            const subOsc = this.ctx.createOscillator();
+            const subGain = this.ctx.createGain();
+            subOsc.type = 'sine';
+            subOsc.frequency.setValueAtTime(92, now);
+            subOsc.frequency.exponentialRampToValueAtTime(38, now + 0.85);
+            subGain.gain.setValueAtTime(0.22, now);
+            subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+            subOsc.connect(subGain);
+            subGain.connect(this.ctx.destination);
+            subOsc.start(now);
+            subOsc.stop(now + 0.92);
+
+            // 3 urgent dissonant alarm pulses (tritone tension: 622Hz + 880Hz -> 466Hz + 659Hz)
+            const pulses = [
+              { t: 0.0, f1: 622.25, f2: 880.0, dur: 0.18 },
+              { t: 0.24, f1: 466.16, f2: 659.25, dur: 0.18 },
+              { t: 0.48, f1: 622.25, f2: 880.0, dur: 0.28 }
+            ];
+            pulses.forEach((p) => {
+              [p.f1, p.f2].forEach((freq, i) => {
+                const osc = this.ctx.createOscillator();
+                const filter = this.ctx.createBiquadFilter();
+                const gain = this.ctx.createGain();
+                osc.type = i === 0 ? 'sawtooth' : 'square';
+                osc.frequency.setValueAtTime(freq, now + p.t);
+                osc.frequency.linearRampToValueAtTime(freq * 0.94, now + p.t + p.dur);
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(1800, now + p.t);
+                gain.gain.setValueAtTime(0.001, now + p.t);
+                gain.gain.linearRampToValueAtTime(0.085, now + p.t + 0.02);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + p.t + p.dur);
+                osc.connect(filter);
+                filter.connect(gain);
+                gain.connect(this.ctx.destination);
+                osc.start(now + p.t);
+                osc.stop(now + p.t + p.dur + 0.03);
+              });
+            });
+            return;
+          }
+
+          // Standard News Broadcast Jingle
+          const notes = [330, 440, 554.37, 659.25];
           notes.forEach((freq, idx) => {
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
-            osc.type = isBreaking ? 'sawtooth' : 'triangle';
+            osc.type = 'triangle';
             osc.frequency.setValueAtTime(freq, now + idx * 0.11);
             gain.gain.setValueAtTime(0.09, now + idx * 0.11);
             gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.11 + 0.18);
@@ -4631,35 +4660,6 @@
           } else {
             showToast('⚠️ Chưa có bản lưu nào trong trình duyệt.');
           }
-        });
-
-        // Simulation Quick Jumps (for testing Stages 4, 6 & Finale)
-        document.getElementById('btnSimStage4').addEventListener('click', () => {
-          if (!state) return;
-          state.stats.aiDependence = 58;
-          state.oracleAccepted = 9;
-          state.month = 24;
-          state.oracleStage = computeOracleStage(state);
-          sysModal.classList.add('hidden');
-          renderAll();
-          showToast('⚡ Đã chuyển sang Giữa Nhiệm Kỳ — ORACLE STAGE 4 (THE MANIPULATION).');
-        });
-
-        document.getElementById('btnSimStage6').addEventListener('click', () => {
-          if (!state) return;
-          state.stats.aiDependence = 88;
-          state.stats.freedom = 16;
-          state.oracleAccepted = 18;
-          state.month = 44;
-          state.oracleStage = computeOracleStage(state);
-          sysModal.classList.add('hidden');
-          renderAll();
-          showToast('🚨 Đã chuyển sang Cuối Nhiệm Kỳ — ORACLE STAGE 6 (THE REVELATION).');
-        });
-
-        document.getElementById('btnSimTriggerFinale').addEventListener('click', () => {
-          sysModal.classList.add('hidden');
-          triggerEndingSequence();
         });
 
         document.getElementById('btnReturnIntro').addEventListener('click', () => {
