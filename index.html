@@ -260,11 +260,11 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               <div>
                 <label for="inputPresName" class="block text-xs font-mono-tech uppercase text-slate-400 mb-1">Họ tên Tổng thống</label>
-                <input id="inputPresName" type="text" value="Tạ Minh Khôi" placeholder="Nhập tên Tổng thống..." class="w-full px-3 py-2 rounded bg-slate-950 border border-slate-700 text-white text-sm focus:border-cyan-400 focus:outline-none font-medium" />
+                <input id="inputPresName" type="text" value="" placeholder="Nhập tên Tổng thống..." class="w-full px-3 py-2 rounded bg-slate-950 border border-slate-700 text-white text-sm focus:border-cyan-400 focus:outline-none font-medium" />
               </div>
               <div>
                 <label for="inputCountryName" class="block text-xs font-mono-tech uppercase text-slate-400 mb-1">Tên Quốc gia</label>
-                <input id="inputCountryName" type="text" value="ĐẠI VIỆT" placeholder="Nhập tên Quốc gia..." class="w-full px-3 py-2 rounded bg-slate-950 border border-slate-700 text-cyan-300 text-sm focus:border-cyan-400 focus:outline-none font-bold uppercase" />
+                <input id="inputCountryName" type="text" value="" placeholder="Nhập tên Quốc gia..." class="w-full px-3 py-2 rounded bg-slate-950 border border-slate-700 text-cyan-300 text-sm focus:border-cyan-400 focus:outline-none font-bold uppercase" />
               </div>
             </div>
 
@@ -2964,7 +2964,7 @@
           shutdownAttempts: 0,
           usedEventIds: [],
           pendingChains: [],
-          currentEventId: 'ECO-01',
+          currentEventId: EVENTS_DB[Math.floor(Math.random() * EVENTS_DB.length)].id,
           unlockedAltOption: false,
           rejectedCurrentAdvice: false,
           historyLog: [],
@@ -3072,21 +3072,27 @@
         const unused = EVENTS_DB.filter((e) => !s.usedEventIds.includes(e.id));
         const pool = unused.length > 0 ? unused : EVENTS_DB;
 
+        const pickRandomByCategory = (cat) => {
+          const matches = pool.filter((e) => e.category === cat);
+          if (matches.length === 0) return null;
+          return matches[Math.floor(Math.random() * matches.length)].id;
+        };
+
         if (s.stats.economy <= 32) {
-          const ecoEv = pool.find((e) => e.category === 'KINH TẾ');
-          if (ecoEv) return ecoEv.id;
+          const ecoId = pickRandomByCategory('KINH TẾ');
+          if (ecoId) return ecoId;
         }
         if (s.stats.stability <= 32 || s.stats.happiness <= 32) {
-          const socEv = pool.find((e) => e.category === 'XÃ HỘI');
-          if (socEv) return socEv.id;
+          const socId = pickRandomByCategory('XÃ HỘI');
+          if (socId) return socId;
         }
         if (s.stats.healthcare <= 32 || s.stats.food <= 32 || s.stats.energy <= 32) {
-          const envEv = pool.find((e) => e.category === 'Y TẾ & MÔI TRƯỜNG');
-          if (envEv) return envEv.id;
+          const envId = pickRandomByCategory('Y TẾ & MÔI TRƯỜNG');
+          if (envId) return envId;
         }
         if (s.stats.aiDependence >= 58) {
-          const tecEv = pool.find((e) => e.category === 'CÔNG NGHỆ & AN NINH');
-          if (tecEv) return tecEv.id;
+          const tecId = pickRandomByCategory('CÔNG NGHỆ & AN NINH');
+          if (tecId) return tecId;
         }
 
         // 3. Balanced rotation across categories
@@ -4365,8 +4371,20 @@
         // Start New Game -> Immediately launch Inauguration News Broadcast
         document.getElementById('btnStartNewGame').addEventListener('click', () => {
           SoundEngine.playClick(720);
-          const nameVal = document.getElementById('inputPresName').value;
-          const countryVal = document.getElementById('inputCountryName').value;
+          const nameInput = document.getElementById('inputPresName');
+          const countryInput = document.getElementById('inputCountryName');
+          const nameVal = nameInput.value.trim();
+          const countryVal = countryInput.value.trim();
+          if (!nameVal) {
+            nameInput.focus();
+            alert('Vui lòng nhập Họ tên Tổng thống trước khi bắt đầu!');
+            return;
+          }
+          if (!countryVal) {
+            countryInput.focus();
+            alert('Vui lòng nhập Tên Quốc gia trước khi bắt đầu!');
+            return;
+          }
           const modeVal = document.getElementById('selectStartMode').value;
           state = createInitialState(nameVal, selectedTitle, modeVal, countryVal);
           document.getElementById('introScreen').classList.add('hidden');
